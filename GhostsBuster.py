@@ -2,12 +2,15 @@ import requests
 from requests_html import HTMLSession
 from urllib.request import urlparse, urljoin, urlopen
 from bs4 import BeautifulSoup
+import numpy as np
 import colorama
 
 # init the colorama module
 colorama.init()
 invalidLink = []
 visited = []
+pathFlow = []
+invalid = []
 
 
 def is_valid(url):
@@ -21,6 +24,13 @@ def is_valid(url):
     except:
         OK = False
         invalidLink.append(url)
+        pathFlow.append(url)
+        # print("printing path flow from within is_valid*************************************************************")
+        # print(pathFlow)
+        # invalid.append(pathFlow)
+        # pathFlow.clear()
+        # print("the last link is not valid!")
+        # print(invalid)
     parsed = urlparse(url)
     return bool(parsed.netloc) and bool(parsed.scheme) and OK
 
@@ -43,7 +53,7 @@ def get_all_links_in_webpage(url):
         if(len(link.findAll(text=True)) > 0):
             if link.findAll(text=True)[0] != '\n':
                 text = link.findAll(text=True)[0]
-            else:
+            elif (len(link.findAll("img")) > 0):
                 img = link.findAll("img")[0]
                 text = "https:" + img.attrs.get("src")
 
@@ -71,35 +81,53 @@ def get_all_links_in_webpage(url):
 
         # need to check if link is an img
         item = (text, href)
-
-        if(url not in visited):
+        if(".html" in href or ".png" in href or "fyber" not in href):
+            continue
+        if(url not in visited and is_valid(url)):
             visited.append(url)
-        if(href not in visited and href not in urls):
+            # print("printing path flow")
+            pathFlow.append(url)
+            # print(pathFlow)
+        if(href not in visited and href not in urls and is_valid(href)):
             urls.append(href)
 
     return urls
 
 
-def crawl(url, max_urls=50):
+def crawl(url, max_urls=30):
     """
     Crawls a web page and extracts all links.
     You'll find all links in `external_urls` and `internal_urls` global set variables.
     params:
         max_urls (int): number of max urls to crawl, default is 30.
     """
+    # pathFlow.append(url)
+    print("currently running url")
     print(url)
+    print("\n")
     links = get_all_links_in_webpage(url)
     print("visied before and this page")
     print(visited)
+    print("\n")
     print("printing links found in current page")
     print(links)
-    for link in links:
-        print("printing url to crawl next")
-        print(link)
+    print("\n")
+    # print("invalid links")
+    # print(invalidLink)
+
+    for index, link in enumerate(links):
+        # print("printing url to crawl next")
+        # print(link)
+        # print(index)
         print("printing the number of visited urls")
-        print(len(visited))
+        print(str(len(visited)))
+        print("********************************"+"\n\n")
         if len(visited) > max_urls:
-            break
+            print("invalid links")
+            # print(invalidLink)
+            npa = np.asarray(invalidLink)
+            print(npa)
+            exit()  # will continue another time
         crawl(link, max_urls=max_urls)
 
 
@@ -108,8 +136,9 @@ if __name__ == "__main__":
     links = crawl(
         "https://developer.fyber.com/hc/en-us")
 
+    # print(is_valid("https://developer.fyber.com/hc/en-us/articles/360009975338-Fyber-FairBid/subscription.html"))
     # links = get_all_links_in_webpage(
-    # "https://developer.fyber.com/hc/en-us/categories/360001778457-Fyber-FairBid")
+    # "https://developer.fyber.com/hc/en-us/sections/360002865578-Setting-Up-FairBid")
     for link in links:
-        print(link)
-        # break
+        # print(link)
+        break
