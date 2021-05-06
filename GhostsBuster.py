@@ -6,7 +6,7 @@ import colorama
 
 # init the colorama module
 colorama.init()
-invalidUrl = []
+invalidLink = []
 visited = []
 
 
@@ -20,7 +20,7 @@ def is_valid(url):
             OK = True
     except:
         OK = False
-        invalidUrl.append(url)
+        invalidLink.append(url)
     parsed = urlparse(url)
     return bool(parsed.netloc) and bool(parsed.scheme) and OK
 
@@ -49,7 +49,7 @@ def get_all_links_in_webpage(url):
 
         href = link.attrs.get("href")
         if href == "" or href is None:
-            # href empty tag
+            invalidLink.append(text)
             continue
         # join the URL if it's relative (not absolute link)
         href = urljoin(url, href)
@@ -62,15 +62,19 @@ def get_all_links_in_webpage(url):
             home = parsed_href.netloc
         href = parsed_href.scheme + "://" + home + parsed_href.path
         temp = href.split()
-        href = ''.join(href.split())
-        print(href)
-        #print(text + " / " + href)
+        connector = "/hc/en-us"
+        correct_path = [path for path in temp if connector in path]
+        if(len(correct_path) > 1 and connector in correct_path[-1]):
+            temp[0] = correct_path[0].split('/hc/en-us')[0]
+
+        href = ''.join(temp)
+
         # need to check if link is an img
         item = (text, href)
 
         if(url not in visited):
             visited.append(url)
-        if(href not in visited):
+        if(href not in visited and href not in urls):
             urls.append(href)
 
     return urls
@@ -85,12 +89,12 @@ def crawl(url, max_urls=50):
     """
     print(url)
     links = get_all_links_in_webpage(url)
-    print("inital visited")
+    print("visied before and this page")
     print(visited)
-    print("printing links")
+    print("printing links found in current page")
     print(links)
     for link in links:
-        print("printing url to crawl")
+        print("printing url to crawl next")
         print(link)
         print("printing the number of visited urls")
         print(len(visited))
@@ -105,7 +109,7 @@ if __name__ == "__main__":
         "https://developer.fyber.com/hc/en-us")
 
     # links = get_all_links_in_webpage(
-    #  "https://developer.fyber.com/hc/en-us")
+    # "https://developer.fyber.com/hc/en-us/categories/360001778457-Fyber-FairBid")
     for link in links:
-        # print(link)
-        break
+        print(link)
+        # break
